@@ -6,7 +6,9 @@ library("RColorBrewer")
 library("patchwork")
 library("pals")
 library("glue")
-library(dplyr)
+library("optparse")
+# library("dplyr")
+suppressMessages(library(dplyr))
 
 get_most_abundant <- function(df, num, tax_rank)
 {
@@ -118,17 +120,59 @@ plot_taxonomy <- function(merged_metagenomes, tax_level, n_top, n_colors, relati
     plot <- ggplot(data= df, aes(x=Sample, y=Abundance, fill=!!sym(tax_level)))+geom_bar(aes(), stat="identity", position="stack")+scale_fill_manual(values = colors)
 
     return (plot)
+}
 
+# Definition of arguments to call from the command line
+option_list <- list(
+    make_option(
+        c("--input", "-i"),
+        type = "character",
+        default=NULL,
+        help = "Path to BIOM file"
+    ),
+    make_option(
+        c("--output", "-o"),
+        type = "character",
+        default=NULL,
+        help = "Output directory where the plots will be saved"
+    ),
+    make_option(
+        c("--level", "-l"),
+        type = "character",
+        default="Phylum",
+        help = "Taxonomy level at which the plot will be generated (Phylum, Class, Order, Family, Genus or Species)"
+    ),
+    make_option(
+        c("--top", "-t"),
+        type = "numeric",
+        default=9,
+        help = "Specify number of top species to plot (according to selected taxonomy level)"
+    ),
+    make_option(
+        c("--colors", "-c"),
+        type = "numeric",
+        default=7,
+        help = "Specify number of colors to use"
+    )
+)
+
+#Argument parser
+opt_parser <- OptionParser(usage = "Usage: script.R [options]", option_list = option_list)
+args <- commandArgs(trailingOnly = TRUE)
+opt <- parse_args(opt_parser, args = args)
+
+#Throwing error in case no input was provided
+if (is.null(opt$input))
+{
+    stop("Input not specified, use -i flag to define the path to your BIOM file")
 }
 
 
-merged_metagenomes <- import_biom("latinbiota_bracken.biom")
-tax <- "Class"
+# MAIN FUNCTION
+merged_metagenomes <- import_biom(opt$input)
 
-abs <- plot_taxonomy(merged_metagenomes, tax_level = tax, n_top =  20, n_colors = 9)
-rel <- plot_taxonomy(merged_metagenomes, tax_level = tax, n_top =  20, n_colors = 9, relative = TRUE)
+abs <- plot_taxonomy(merged_metagenomes, tax_level = opt$level, n_top =  opt$top, n_colors = opt$colors)
+rel <- plot_taxonomy(merged_metagenomes, tax_level = opt$level, n_top =  opt$top, n_colors = opt$colors, relative = TRUE)
 
-# ggsave(glue("{tax_level}AbsoluteAbundance.png"), plot = abs, width = 4500, height = 2950, units = "px", dpi = 400)
-# ggsave(glue("{tax_level}RelativeAbundance.png"), plot = rel, width = 4500, height = 2950, units = "px", dpi = 400)
-ggsave("AbsoluteAbundance.png", plot = abs, width = 4500, height = 2950, units = "px", dpi = 400)
-ggsave("RelativeAbundance.png", plot = rel, width = 4500, height = 2950, units = "px", dpi = 400)
+ggsave(paste(opt$output, "AbsoluteAbundance.png"), plot = abs, width = 4500, height = 2950, units = "px", dpi = 400)
+ggsave(paste(opt$output, "RelativeAbundance.png"), plot = rel, width = 4500, height = 2950, units = "px", dpi = 400)
