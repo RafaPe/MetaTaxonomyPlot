@@ -5,6 +5,7 @@ This GitHub project provides a tool to generate taxonomy abundance plots for met
 - R v3.6
 
 ### Libraries
+- BiocManager v1.30.22
 - phyloseq v1.30.0
 - ggplot2 v3.4.4
 - RColorBrewer v1.1.3
@@ -15,7 +16,8 @@ This GitHub project provides a tool to generate taxonomy abundance plots for met
 
 ### Installation
 ```R
-install.packages("phyloseq", version = "1.30.0")
+install.packages("BiocManager", version = "1.30.22")
+BiocManager::install("phyloseq", version = "1.30.0")
 install.packages("ggplot2", version = "3.4.4")
 install.packages("RColorBrewer", version = "1.1.3")
 install.packages("patchwork", version = "1.1.3")
